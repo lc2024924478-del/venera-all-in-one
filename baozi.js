@@ -1,0 +1,1175 @@
+/** @type {import('./_venera_.js')} */
+
+class BaozimhWww extends ComicSource {
+  name = "包子漫画 (yyya)";
+
+  // 保留已有 key，更新后继续使用原来的历史、收藏和设置
+  key = "baozi";
+
+  version = "1.6.4";
+
+  minAppVersion = "1.6.0";
+
+  url = "";
+
+  // ---------------------------------------------------------------------------
+  // 设置
+  // ---------------------------------------------------------------------------
+  settings = {
+    host: {
+      title: "站点域名",
+      type: "select",
+      options: [
+        { value: "www.baozimh.com" },
+        { value: "cn.baozimh.com" },
+        { value: "tw.baozimh.com" },
+      ],
+      default: "www.baozimh.com",
+    },
+    language: {
+      title: "简繁切换 (接口参数)",
+      type: "select",
+      options: [
+        { value: "cn", text: "简体" },
+        { value: "tw", text: "繁體" },
+      ],
+      default: "cn",
+    },
+    cdn_domains: {
+      title: "图片资源站域名",
+      type: "select",
+      options: [
+        { value: "as-rsa1-usla.baozicdn.com" },
+        { value: "ascn-a3.bzcdn.net" },
+        { value: "asgb-a3.bzcdn.net" },
+        { value: "as.baozimh.com" },
+        { value: "s1.baozicdn.com" },
+        { value: "", text: "默认" },
+      ],
+      default: "",
+    },
+    cookie: {
+      title: "备用 Cookie (手动粘贴)",
+      type: "input",
+      validator: null,
+      default: "",
+    },
+    user_agent: {
+      title: "User-Agent (默认固定，可修改)",
+      type: "input",
+      validator: null,
+      default: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36",
+    },
+    image_quality: {
+      title: "图片质量",
+      type: "select",
+      options: [
+        { value: "/w640", text: "640p" },
+        { value: "", text: "原图" },
+      ],
+      default: "/w640",
+    },
+    banner_cleanup: {
+      title: "自动移除图片内横幅（实验，需阅读器通用裁切接口）",
+      type: "switch",
+      default: false,
+    },
+    banner_cleanup_help: {
+      title: "横幅裁切说明",
+      type: "callback",
+      buttonText: "查看说明",
+      callback: () => UI.showMessage(
+        "开启后仅处理新加载的正文图片，不处理封面。通过白底、黄色标志与文字布局进行启发式检测，仍可能漏裁或误裁。旧图片请使用阅读器的“重新加载图片”；误裁可在裁切工具中选择“恢复原图”。需要安装 reader-tools-v1 阅读器更新；旧阅读器会保留原图。"),
+    },
+    open_verification_page: {
+      title: "打开站点 / 验证信息",
+      type: "callback",
+      buttonText: "打开当前站点",
+      callback: async () => {
+        const url = `${this.baseUrl}/`;
+        try {
+          await UI.launchUrl(url);
+          UI.showMessage("已打开当前选定的包子漫画站点。若需在应用网页登录并保存 Cookie，请使用页面底部的“重新登录”；F12 Network 请求头无法由源脚本自动读取，User-Agent 请手动复制填写。");
+        } catch (e) {
+          UI.showMessage(`无法打开验证网页：${String(e)}`);
+        }
+      },
+    },
+    connection_check: {
+      title: "连接检查",
+      type: "callback",
+      buttonText: "检查当前域名",
+      callback: async () => {
+        const url = this.baseUrl;
+        try {
+          // 检查所选域名本身，不触发自动切换，结果才可用于判断当前设置。
+          const res = await Network.get(url, { ...this.siteHeaders(url), "cache-time": "no", "prevent-parallel": "true" });
+          try {
+            log("info", "baozimh_www connection check",
+              `GET ${url} -> ${res.status} cookieSource=${this.loadData("login_cookie") ? "loginWithCookies" : (this.loadSetting("cookie") ? "fallback-setting" : "none")} manualUA=${!!this.siteHeaders(url)["User-Agent"]}`);
+          } catch (ignored) {}
+          if (this.isChallenge(res)) {
+            UI.showMessage("当前域名返回了网站验证页；请检查 Cookie 和 User-Agent 设置。");
+            return;
+          }
+          if (res.status === 200) {
+            const appCookies = (Network.getCookies(url) || []).map((item) => item.name).filter(Boolean);
+            const cookie = appCookies.length ? "WebView Cookie（主）" : (this.loadData("login_cookie") ? "Cookie 表单备用" : (this.loadSetting("cookie") ? "手动 Cookie 备用" : "未设置 Cookie"));
+            const ua = !!this.siteHeaders(url)["User-Agent"];
+            const appCookieState = appCookies.length ? `应用 Cookie：已检测到 (${appCookies.join(", ")})` : "应用 Cookie：未检测到";
+            UI.showMessage(`连接成功：${this.host} (HTTP 200)；${appCookieState}；当前 Cookie 来源：${cookie}；User-Agent：${ua ? "已启用" : "未启用"}`);
+            return;
+          }
+          UI.showMessage(`${this.host}：${this.statusMessage(res.status, false)}`);
+        } catch (e) {
+          try { log("error", "baozimh_www connection check", String(e)); } catch (ignored) {}
+          UI.showMessage(`连接失败：${String(e)}`);
+        }
+      },
+    },
+  };
+
+  get host() {
+    return this.loadSetting("host") || this.settings.host.default;
+  }
+
+  get lang() {
+    return this.loadSetting("language") || this.settings.language.default;
+  }
+
+  get baseUrl() {
+    return `https://${this.host}`;
+  }
+
+  // ---------------------------------------------------------------------------
+  // 验证 (Cloudflare / 人机验证) 处理
+  //
+  // 思路:
+  //   1. 所有请求都走 this.request,一旦识别到验证页就抛出明确的提示。
+  //   2. 用户在 "账号 -> 网页登录" 里打开站点,在内置网页中完成验证,
+  //      应用会自动保存 Cookie (含 cf_clearance 等),之后的 Network 请求会带上。
+  //   3. 验证过期后重复第 2 步即可。
+  // ---------------------------------------------------------------------------
+  get challengeMessage() {
+    return `需要通过网站验证:请优先使用“重新登录”在应用内完成网页验证；如 WebView Cookie 不可用，再使用 Cookie 登录入口或“备用 Cookie”设置。User-Agent 需在设置中填写。`;
+  }
+
+  /**
+   * 判断响应是否为验证页。
+   * 本站的验证形式 (来自实际日志):
+   *   HTTP 403, content-type: application/json
+   *   {"challenge_url":"/__gatekeeper_challenge/start?return=...","error":"challenge_required"}
+   *
+   * 注意:HTTP 200 的正常页面里可能也带有 gatekeeper 相关字样,
+   * 所以 200 响应绝不能仅凭关键字判定为验证页。
+   */
+  isChallenge(res) {
+    const body = typeof res.body === "string" ? res.body : "";
+    const status = Number(res.status);
+    // 只有响应包含站点明确的挑战信号时才提示验证；普通 403/429/503 保留为状态码错误。
+    if (body.length < 20000 && /"error"\s*:\s*"challenge_required"/i.test(body)) {
+      return true;
+    }
+    const head = body.slice(0, 10000);
+    const challengeTitle = /<title[^>]*>\s*(Just a moment|Attention Required|请稍候|Checking your browser)/i.test(head);
+    const cloudflareMarker = /(?:cf-chl-|challenge-platform|__cf_chl|cf-browser-verification)/i.test(head);
+    return challengeTitle || (cloudflareMarker && [200, 403, 429, 503].includes(status));
+  }
+
+  /**
+   * 站点请求头:仅对本站域名附带用户填写的 Cookie / User-Agent
+   */
+  requestHost(url) {
+    const match = String(url || "").match(/^https?:\/\/([^/:?#]+)/i);
+    return match ? match[1].toLowerCase().replace(/\.$/, "") : "";
+  }
+
+  isBaoziPageHost(host) {
+    return /^(?:[a-z0-9-]+\.)*baozimh\.com$/i.test(host);
+  }
+
+  isBaoziImageHost(host) {
+    return /^(?:[a-z0-9-]+\.)*(?:baozimh\.com|baozicdn\.com|bzcdn\.net)$/i.test(host);
+  }
+
+  mainRequestUrls(url) {
+    const match = String(url || "").match(/^(https?:\/\/)([^/?#]+)([^?#]*)([?#].*)?$/i);
+    if (!match) return [url];
+    const host = match[2].toLowerCase();
+    const allowedHosts = this.settings.host.options.map((option) => option.value);
+    if (!allowedHosts.includes(host)) return [url];
+    const pathAndQuery = (match[3] || "/") + (match[4] || "");
+    return [host, ...allowedHosts.filter((candidate) => candidate !== host)]
+      .map((candidate) => `${match[1]}${candidate}${pathAndQuery}`);
+  }
+
+  statusMessage(status, fallbackTried = true) {
+    status = Number(status);
+    if (status === 401 || status === 403) return `请求被拒绝 (HTTP ${status})；请检查 Cookie、User-Agent 或站点登录状态。`;
+    if (status === 404) return "页面或作品不存在 (HTTP 404)；未切换域名。";
+    if (status === 429) return "请求过于频繁 (HTTP 429)；请稍后再试，未切换域名。";
+    if ([500, 502, 503, 504].includes(status)) return `站点暂时不可用 (HTTP ${status})；${fallbackTried ? "已尝试备用域名" : "检查按钮未切换域名"}。`;
+    return `站点返回 HTTP ${status}`;
+  }
+
+  /** 手动 Cookie 只发往包子站点；图片 CDN 请求仅按需带 UA 与 Referer。 */
+  siteHeaders(url, options = {}) {
+    const h = {};
+    const host = this.requestHost(url);
+    const pageHost = this.isBaoziPageHost(host);
+    const imageHost = options.forImage === true && this.isBaoziImageHost(host);
+    if (!pageHost && !imageHost) return h;
+
+    const clean = (value) => String(value || "").replace(/[\r\n]+/g, "").trim();
+    // WebView 原生 Cookie jar 是首选；仅在 jar 里没有 Cookie 时供直连请求使用备用值。
+    const appCookies = pageHost && !options.forImage && options.cookieMode !== "none"
+      ? (Network.getCookies(url) || [])
+      : [];
+    const hasWebviewCookies = appCookies.some((item) => item && item.name && item.value != null);
+    const primaryFallback = clean(this.loadData("login_cookie"));
+    const manualFallback = clean(this.loadSetting("cookie")).replace(/^cookie:\s*/i, "");
+    const fallbackCookie = primaryFallback || manualFallback;
+    const ua = clean(this.loadSetting("user_agent") || this.settings.user_agent.default).replace(/^user-agent:\s*/i, "");
+    if (pageHost && !options.forImage && options.cookieMode !== "none" && !hasWebviewCookies && fallbackCookie) {
+      h.Cookie = fallbackCookie;
+    }
+    if (ua) h["User-Agent"] = ua;
+    return h;
+  }
+
+  /**
+   * 缩略图配置必须保持同步且不携带 onLoadFailed 回调。
+   * Venera Next 当前不支持缩略图失败回调;携带闭包可能在下载封面时触发已关闭的 JS scope。
+   */
+  thumbnailLoadConfig(url) {
+    const targetUrl = String(url || "");
+    const headers = this.siteHeaders(targetUrl, { forImage: true });
+    if (this.isBaoziImageHost(this.requestHost(targetUrl))) {
+      headers.Referer = this.baseUrl + "/";
+    }
+    const config = { url: targetUrl };
+    if (Object.keys(headers).length > 0) config.headers = headers;
+    return config;
+  }
+
+  imageLoadConfig(url, candidateIndex = 0) {
+    const match = String(url || "").match(/^(https?:\/\/)([^/?#]+)([^?#]*)([?#].*)?$/i);
+    const originalHost = match ? match[2].toLowerCase() : "";
+    const pathAndQuery = match ? (match[3] || "/") + (match[4] || "") : "";
+    const candidates = [];
+    const addHost = (host) => {
+      host = String(host || "").trim().toLowerCase();
+      if (!host || candidates.some((item) => item.host === host)) return;
+      candidates.push({ host: host, url: match ? `${match[1]}${host}${pathAndQuery}` : url });
+    };
+
+    // 优先使用当前图片地址（已遵从用户选择的 CDN），失败后依次尝试其他已知 CDN。
+    addHost(originalHost);
+    addHost(this.loadSetting("cdn_domains") || "");
+    for (const host of [
+      "as-rsa1-usla.baozicdn.com",
+      "ascn-a3.bzcdn.net",
+      "asgb-a3.bzcdn.net",
+      "as.baozimh.com",
+      "s1.baozicdn.com",
+    ]) addHost(host);
+
+    const index = Math.max(0, Math.min(candidates.length - 1, candidateIndex || 0));
+    const target = candidates[index] || { host: originalHost, url: url };
+    const headers = this.siteHeaders(target.url, { forImage: true });
+    if (this.isBaoziImageHost(target.host)) headers.Referer = this.baseUrl + "/";
+
+    const config = { url: target.url };
+    // Source owns detection and its switch. Reader only supplies pixel/crop APIs.
+    const cleanup = this.loadSetting("banner_cleanup") ?? false;
+    if ((cleanup === true || cleanup === "true") && this.isBaoziImageHost(target.host)) {
+      config.modifyImage = "function modifyImage(image) { return (" +
+        baoziBannerCleanup.toString() + ")(image); }";
+    }
+    if (Object.keys(headers).length > 0) config.headers = headers;
+    if (index + 1 < candidates.length) {
+      config.onLoadFailed = () => {
+        const nextIndex = index + 1;
+        try {
+          log("warning", "baozimh_www image", `图片请求失败，切换 CDN ${target.host} -> ${candidates[nextIndex].host}`);
+        } catch (e) {}
+        return this.imageLoadConfig(url, nextIndex);
+      };
+    } else {
+      config.onLoadFailed = () => {
+        try { log("error", "baozimh_www image", `所有备用 CDN 均失败，最后地址=${target.url}`); } catch (e) {}
+        return null;
+      };
+    }
+    return config;
+  }
+
+  /**
+   * 统一 GET：先使用 Cookie 登录保存的 Cookie；遇到验证/拒绝时再尝试备用手动 Cookie。
+   */
+  async request(url, headers = {}) {
+    const urls = this.mainRequestUrls(url);
+    const cookieCandidates = [{ value: "", source: "webview-cookie-jar" }];
+    const loginCookie = String(this.loadData("login_cookie") || "").trim();
+    const manualCookie = String(this.loadSetting("cookie") || "").replace(/^cookie:\s*/i, "").trim();
+    if (loginCookie) cookieCandidates.push({ value: loginCookie, source: "loginWithCookies-fallback" });
+    if (manualCookie && manualCookie !== loginCookie) cookieCandidates.push({ value: manualCookie, source: "manual-fallback" });
+
+    let lastError = null;
+    for (let i = 0; i < urls.length; i++) {
+      const targetUrl = urls[i];
+      let res = null;
+      let usedCookieSource = "app-cookie-jar";
+      for (let c = 0; c < cookieCandidates.length; c++) {
+        const candidate = cookieCandidates[c];
+        const requestHeaders = { ...this.siteHeaders(targetUrl, { cookieMode: "none" }), ...headers };
+        if (candidate.value && this.isBaoziPageHost(this.requestHost(targetUrl))) {
+          requestHeaders.Cookie = candidate.value;
+        }
+        try {
+          res = await Network.get(targetUrl, requestHeaders);
+          usedCookieSource = candidate.source;
+        } catch (e) {
+          lastError = e;
+          // Cookie 不会修复传输层故障；直接交给域名备用逻辑处理。
+          break;
+        }
+        const denied = this.isChallenge(res) || [401, 403].includes(Number(res.status));
+        if (denied && c + 1 < cookieCandidates.length) {
+          try { log("warning", "baozimh_www", `Cookie ${candidate.source} 被拒绝，改试备用 Cookie: ${targetUrl}`); } catch (ignored) {}
+          continue;
+        }
+        break;
+      }
+
+      if (!res) {
+        try { log("warning", "baozimh_www", `网络请求失败，尝试备用域名 (${i + 1}/${urls.length}): ${targetUrl}`); } catch (ignored) {}
+        if (i + 1 < urls.length) continue;
+        throw `网络连接失败 (已尝试 ${i + 1} 个域名): ${String(lastError || "未知错误")}`;
+      }
+
+      try {
+        log("info", "baozimh_www v" + this.version,
+          `GET ${targetUrl} -> ${res.status} (len ${(res.body || "").length}) cookieSource=${usedCookieSource} manualUA=${!!this.siteHeaders(targetUrl)["User-Agent"]}`);
+      } catch (e) {}
+
+      if (this.isChallenge(res)) {
+        try {
+          const cookieNames = (Network.getCookies(targetUrl) || []).map((c) => c.name).filter(Boolean).join(",");
+          const contentType = res.headers && (res.headers["content-type"] || res.headers["Content-Type"] || "unknown");
+          log("error", "baozimh_www v" + this.version,
+            `CHALLENGE url=${targetUrl} status=${res.status} contentType=${contentType} cookieNames=[${cookieNames}]`);
+        } catch (e) {}
+        throw this.challengeMessage;
+      }
+      if (res.status === 200) return res;
+
+      // 仅网络异常及常见临时服务错误会切换域名；404、限流和其他 4xx 不切换。
+      const retryableStatus = [500, 502, 503, 504].includes(Number(res.status));
+      if (retryableStatus && i + 1 < urls.length) {
+        try { log("warning", "baozimh_www", `HTTP ${res.status}，尝试备用域名 (${i + 2}/${urls.length})`); } catch (e) {}
+        continue;
+      }
+      throw this.statusMessage(res.status);
+    }
+    throw `网络连接失败: ${String(lastError || "未知错误")}`;
+  }
+
+  /**
+   * 解析 HTML 并保证释放文档
+   */
+  withDoc(html, fn) {
+    const doc = new HtmlDocument(html);
+    try {
+      return fn(doc);
+    } finally {
+      doc.dispose();
+    }
+  }
+
+  /** WebView 验证成功后保存站点 Cookie 作为备用；原生 WebView Cookie jar 仍是首选。 */
+  logWebviewCookieState() {
+    try {
+      const cookies = Network.getCookies(this.baseUrl) || [];
+      const names = cookies.map((item) => item && item.name).filter(Boolean);
+      const usable = cookies.filter((item) => item && item.name && item.value != null &&
+        !/^_(?:ga|gid|gat)(?:_|$)/i.test(item.name));
+      if (!names.length) {
+        log("warning", "baozimh_www webview", "WebView 回调后 Cookie jar 暂无可见 Cookie");
+      } else if (!usable.length) {
+        log("warning", "baozimh_www webview",
+          `WebView Cookie jar 仅看到统计 Cookie，未保存备用登录 Cookie；名称=[${names.join(", ")}]`);
+      } else {
+        const cookie = usable.map((item) => `${item.name}=${item.value}`).join("; ");
+        this.saveData("login_cookie", cookie);
+        log("info", "baozimh_www webview",
+          `验证成功，已保存 ${usable.length} 个站点 Cookie 供后续请求复用`);
+      }
+    } catch (e) {
+      try { log("warning", "baozimh_www webview", `读取或保存 WebView Cookie 失败: ${String(e)}`); } catch (ignored) {}
+    }
+  }  // ---------------------------------------------------------------------------
+  // 账号:网页登录 (同时用于通过验证 / 登录站点账号以使用书架)
+  // ---------------------------------------------------------------------------
+  account = {
+    // Cookie 表单为 WebView 会话的备用方式；校验通过后保存，仅在 WebView Cookie 被拒绝时尝试。
+    // 不声明 account.login，确保不会让账号密码登录优先于 WebView/Cookie 验证流程。
+    loginWithCookies: {
+      fields: ["Cookie"],
+      validate: async (values) => {
+        const raw = Array.isArray(values) ? values[0] : (values && (values.Cookie || values.cookie));
+        const cookie = String(raw || "").replace(/[\r\n]+/g, "").trim().replace(/^cookie:\s*/i, "");
+        if (!cookie || !/^[^=;\s]+\s*=/.test(cookie)) return false;
+        const url = `${this.baseUrl}/`;
+        try {
+          // 新版宿主会在调用 validate 前应用表单 Cookie;这里显式传入，确保当前验证请求使用刚填写的值。
+          const res = await Network.get(url, {
+            ...this.siteHeaders(url),
+            Cookie: cookie,
+            "cache-time": "no",
+            "prevent-parallel": "true",
+          });
+          if (this.isChallenge(res) || Number(res.status) !== 200) return false;
+          this.saveData("login_cookie", cookie);
+          try { log("info", "baozimh_www cookie login", `Cookie 校验通过: host=${this.host}`); } catch (e) {}
+          return true;
+        } catch (e) {
+          try { log("error", "baozimh_www cookie login", `Cookie 校验请求失败: ${String(e)}`); } catch (ignored) {}
+          return false;
+        }
+      },
+    },
+
+    loginWithWebview: {
+      // 注意:此处在安装/解析阶段就会被读取,不能调用 loadSetting,必须是固定值
+      // 应用内重新登录时直接打开 www 首页;若触发验证,站点完成后会回到正常页面
+      url: "https://www.baozimh.com/",
+      /**
+       * 判断验证是否完成。应用只有在这里返回 true 之后才会保存网页里的 Cookie,
+       * 所以这个函数一直返回 false 的话,验证再通过也不会生效。
+       * 日志会记录每次调用收到的 url 和 title,便于排查。
+       */
+      checkStatus: (url, title) => {
+        try {
+            log("info", "baozimh_www v" + this.version + " webview", `url=${url} title=${title}`);
+        } catch (e) {}
+        if (!url || !/^https?:\/\/(?:[a-z0-9-]+\.)?baozimh\.com(?:[:/]|$)/i.test(url)) {
+          return false;
+        }
+        const t = (title || "").trim().toLowerCase();
+        // 页面标题已显示验证通过
+        if (t.includes("验证通过") || t.includes("verified")) {
+          return true;
+        }
+        // 仍停留在验证入口页 / 验证中
+        if (/__gatekeeper_challenge\/start/.test(url)) {
+          return false;
+        }
+        if (
+          t.includes("just a moment") ||
+          t.includes("attention required") ||
+          t.includes("checking your browser") ||
+          t.includes("请稍候") ||
+          t.includes("正在验证")
+        ) {
+          return false;
+        }
+        // 回调可能在首页仍为空白/加载中的阶段触发。不能仅凭离开验证 URL
+        // 就宣告成功，否则应用会提前保存尚未完成验证的 Cookie。
+        // 等到站点页面有非空、非挑战标题后再让应用保存 WebView Cookie。
+        if (!t) {
+          return false;
+        }
+        return true;
+      },
+      onLoginSuccess: () => this.logWebviewCookieState(),
+    },
+
+    // 注销只让 VeneraNext 重置账号显示状态，不清除站点 Cookie。
+    // 下次点登录时会复用已通过验证的 WebView 会话，避免重复做验证。
+    logout: () => {},
+    registerWebsite: "https://www.baozimh.com/user/signup",
+  };
+
+  // ---------------------------------------------------------------------------
+  // 解析工具
+  // ---------------------------------------------------------------------------
+  /**
+   * 规范化图片地址:处理 srcset、协议相对地址、站内相对地址,过滤占位图
+   */
+  normalizeImg(u) {
+    if (!u) return "";
+    u = String(u).trim().replace(/&amp;/g, "&");
+    if (!u || /^(?:data:|about:|javascript:)/i.test(u)) return "";
+    if (/placeholder|loading|lazy|blank|default/i.test(u) && !/\/cover\//i.test(u)) return "";
+    if (u.startsWith("//")) return "https:" + u;
+    if (u.startsWith("/")) return this.baseUrl + u;
+    return u;
+  }
+
+  /** 汇总节点的封面候选：优先真实懒加载字段，再按目标尺寸选择 srcset。 */
+  coverCandidatesFromNode(node) {
+    if (!node) return [];
+    const attrs = node.attributes || {};
+    const candidates = [];
+    const add = (value, score, width = 0) => {
+      const url = this.normalizeImg(value);
+      if (url) candidates.push({ url: url, score: score, width: width });
+    };
+    const fields = [
+      ["data-original", 110], ["data-original-src", 105], ["data-src", 100],
+      ["data-lazy-src", 95], ["data-image", 90], ["data-cover", 85], ["src", 55]
+    ];
+    for (const [key, score] of fields) add(attrs[key], score);
+
+    for (const key of ["data-srcset", "srcset"]) {
+      const srcset = String(attrs[key] || "").replace(/&amp;/g, "&");
+      for (const item of srcset.split(",")) {
+        const match = item.trim().match(/^(\S+)(?:\s+(\d+(?:\.\d+)?)(w|x))?$/i);
+        if (!match) continue;
+        const descriptor = Number(match[2] || 0);
+        const width = match[3] && match[3].toLowerCase() === "x" ? descriptor * 285 : descriptor;
+        const score = 75 - Math.min(40, Math.abs((width || 285) - 285) / 30);
+        add(match[1], score, width);
+      }
+    }
+
+    const style = String(attrs.style || "");
+    const bg = style.match(/url\(["']?(.*?)["']?\)/i);
+    if (bg) add(bg[1], 35);
+    return candidates;
+  }
+
+  coverFromNode(node) {
+    const candidates = this.coverCandidatesFromNode(node);
+    candidates.sort((a, b) => b.score - a.score || a.url.length - b.url.length);
+    return candidates.length ? candidates[0].url : "";
+  }
+
+  coverUrl(value, id) {
+    const raw = String(value || "").trim();
+    if (raw) {
+      if (/^https?:\/\//i.test(raw) || raw.startsWith("//")) return this.normalizeImg(raw);
+      const path = raw.replace(/^\/+/, "");
+      const coverPath = /^(?:[a-z0-9-]+\/)*cover\//i.test(path) ? path : "cover/" + path;
+      const separator = coverPath.includes("?") ? "&" : "?";
+      const resize = /[?&](?:w|h|q)=/i.test(coverPath) ? "" : separator + "w=285&h=375&q=80";
+      return "https://static-tw.baozimh.com/" + coverPath + resize;
+    }
+    return this.coverFromId(id);
+  }
+
+  /** 汇总卡片中的所有候选并排序；没有有效图片时才按漫画 ID 推导。 */
+  coverOf(e, id) {
+    const candidates = [];
+    for (const node of e.querySelectorAll("amp-img, img, [style]")) {
+      candidates.push(...this.coverCandidatesFromNode(node));
+    }
+    const bestByUrl = {};
+    for (const item of candidates) {
+      if (!bestByUrl[item.url] || item.score > bestByUrl[item.url].score) bestByUrl[item.url] = item;
+    }
+    const ranked = Object.keys(bestByUrl).map((url) => bestByUrl[url]);
+    ranked.sort((a, b) =>
+      b.score - a.score ||
+      Math.abs((a.width || 285) - 285) - Math.abs((b.width || 285) - 285)
+    );
+    if (ranked.length) return ranked[0].url;
+    return this.coverFromId(id);
+  }
+  coverFromId(id) {
+    if (!id) return "";
+    const base = String(id).replace(/_[a-z0-9]{6}$/i, "");
+    return `https://static-tw.baozimh.com/cover/${base}.jpg?w=285&h=375&q=80`;
+  }
+
+  parseComic(e) {
+    let url = e.querySelector("a")?.attributes?.["href"] || "";
+    let id = url.split("/").pop();
+    let title = e.querySelector("h3")?.text.trim() || "";
+    let cover = this.coverOf(e, id);
+    let tags = e.querySelectorAll("div.tabs > span").map((x) => x.text.trim());
+    let description = e.querySelector("small")?.text.trim() || "";
+    return new Comic({
+      id: id,
+      title: title,
+      cover: cover,
+      tags: tags,
+      description: description,
+    });
+  }
+
+  parseJsonComic(e) {
+    return new Comic({
+      id: e.comic_id,
+      title: e.name,
+      subtitle: e.author,
+      cover: this.coverUrl(e.topic_img, e.comic_id),
+      tags: e.type_names || [],
+    });
+  }
+
+  // ---------------------------------------------------------------------------
+  // 探索页
+  // ---------------------------------------------------------------------------
+  explore = [
+    {
+      title: "包子漫画",
+      type: "multiPartPage",
+      load: async () => {
+        const res = await this.request(this.baseUrl);
+        return this.withDoc(res.body, (document) => {
+          const result = [];
+          try {
+            const first = document.querySelector("div.comics-card");
+            log(
+              "info",
+              "baozimh_www v" + this.version,
+              "first card html=" + (first ? first.innerHTML : "none").replace(/\s+/g, " ").slice(0, 500)
+            );
+          } catch (e) {}
+          for (const part of document.querySelectorAll(
+            "div.index-recommend-items"
+          )) {
+            const title = part.querySelector("div.catalog-title")?.text.trim();
+            const comics = part
+              .querySelectorAll("div.comics-card")
+              .map((e) => this.parseComic(e));
+            if (title && comics.length > 0) {
+              const normalizedTitle = title.replace(/\s+/g, "");
+              let viewMore = null;
+              if (normalizedTitle.includes("热门漫画") || normalizedTitle.includes("熱門漫畫")) {
+                viewMore = {
+                  page: "category",
+                  attributes: { category: "热门漫画", param: "__home_hot" },
+                };
+              } else if (normalizedTitle.includes("推荐国漫") || normalizedTitle.includes("推薦國漫")) {
+                viewMore = {
+                  page: "category",
+                  attributes: { category: "推荐国漫", param: "__home_cn" },
+                };
+              }
+              result.push({ title: title, comics: comics, ...(viewMore ? { viewMore } : {}) });
+            }
+          }
+          return result;
+        });
+      },
+    },
+  ];
+
+  // ---------------------------------------------------------------------------
+  // 分类
+  // ---------------------------------------------------------------------------
+  category = {
+    title: "包子漫画",
+    parts: [
+      {
+        name: "类型",
+        type: "fixed",
+        categories: [
+          ["全部", "all"],
+          ["恋爱", "lianai"],
+          ["纯爱", "chunai"],
+          ["古风", "gufeng"],
+          ["异能", "yineng"],
+          ["悬疑", "xuanyi"],
+          ["剧情", "juqing"],
+          ["科幻", "kehuan"],
+          ["奇幻", "qihuan"],
+          ["玄幻", "xuanhuan"],
+          ["穿越", "chuanyue"],
+          ["冒险", "mouxian"],
+          ["推理", "tuili"],
+          ["武侠", "wuxia"],
+          ["格斗", "gedou"],
+          ["战争", "zhanzheng"],
+          ["热血", "rexie"],
+          ["搞笑", "gaoxiao"],
+          ["大女主", "danuzhu"],
+          ["都市", "dushi"],
+          ["总裁", "zongcai"],
+          ["后宫", "hougong"],
+          ["日常", "richang"],
+          ["韩漫", "hanman"],
+          ["少年", "shaonian"],
+          ["其它", "qita"],
+        ].map(([label, param]) => ({
+          label: label,
+          target: {
+            page: "category",
+            attributes: { category: label, param: param },
+          },
+        })),
+      },
+    ],
+    enableRankingPage: false,
+  };
+
+  categoryComics = {
+    load: async (category, param, options, page) => {
+      const isHomeHot = param === "__home_hot";
+      const isHomeCn = param === "__home_cn";
+      const apiType = isHomeHot || isHomeCn ? "all" : param;
+      const region = isHomeCn ? "cn" : (options[0] || "all");
+      const state = options[1] || "all";
+      const url =
+        `${this.baseUrl}/api/bzmhq/amp_comic_list?type=${apiType}` +
+        `&region=${region}&state=${state}&filter=%2a&page=${page}&limit=36` +
+        `&language=${this.lang}&__amp_source_origin=${encodeURIComponent(this.baseUrl)}`;
+      const res = await this.request(url);
+      let json;
+      try {
+        json = JSON.parse(res.body);
+      } catch (e) {
+        throw "返回内容不是有效的 JSON,可能需要重新验证";
+      }
+      return {
+        comics: (json.items || []).map((e) => this.parseJsonComic(e)),
+        maxPage: json.next ? null : page,
+      };
+    },
+    optionList: [
+      {
+        options: ["all-全部", "cn-国漫", "jp-日本", "kr-韩国", "en-欧美"],
+      },
+      {
+        options: ["all-全部", "serial-连载中", "pub-已完结"],
+      },
+    ],
+  };
+
+  // ---------------------------------------------------------------------------
+  // 搜索
+  // ---------------------------------------------------------------------------
+  search = {
+    load: async (keyword, options, page) => {
+      const res = await this.request(
+        `${this.baseUrl}/search?q=${encodeURIComponent(keyword)}`
+      );
+      const comics = this.withDoc(res.body, (document) =>
+        document
+          .querySelectorAll("div.comics-card")
+          .map((e) => this.parseComic(e))
+      );
+      return { comics: comics, maxPage: 1 };
+    },
+    optionList: [],
+  };
+
+  // ---------------------------------------------------------------------------
+  // 收藏 (站点书架,需要先在网页登录里登录站点账号)
+  // ---------------------------------------------------------------------------
+  favorites = {
+    multiFolder: false,
+    addOrDelFavorite: async (comicId, folderId, isAdding) => {
+      const url = isAdding
+        ? `${this.baseUrl}/user/operation_v2?op=set_bookmark&comic_id=${comicId}&chapter_slot=0`
+        : `${this.baseUrl}/user/operation_v2?op=del_bookmark&comic_id=${comicId}`;
+      const res = await Network.post(url, this.siteHeaders(url));
+      if (res.status === 401) {
+        throw "Login expired";
+      }
+      if (this.isChallenge(res)) {
+        throw this.challengeMessage;
+      }
+      if (!res.status || res.status >= 400) {
+        throw this.statusMessage(res.status);
+      }
+      return "ok";
+    },
+    loadComics: async (page, folder) => {
+      const res = await this.request(`${this.baseUrl}/user/my_bookshelf`);
+      const comics = this.withDoc(res.body, (document) =>
+        document.querySelectorAll("div.bookshelf-items").map((e) => {
+          const a = e.querySelector("h4 > a");
+          const id = (a?.attributes?.["href"] || "").split("/").pop();
+          const ul = e.querySelector("div.info > ul");
+          const author =
+            ul?.children?.[1]?.text.split("：")[1]?.trim() || "";
+          const description =
+            ul?.children?.[4]?.children?.[0]?.text.trim() || "";
+          return new Comic({
+            id: id,
+            title: a?.text.trim() || "",
+            subtitle: author,
+            description: description,
+            cover: this.coverOf(e, id),
+          });
+        })
+      );
+      if (comics.length === 0 && /user\/signin|name="password"/i.test(res.body)) {
+        throw "Login expired";
+      }
+      return { comics: comics, maxPage: 1 };
+    },
+  };
+
+  // ---------------------------------------------------------------------------
+  // 漫画详情与章节
+  // ---------------------------------------------------------------------------
+  comic = {
+    // 正文图片与封面缩略图由应用单独下载，不会继承页面请求头；在此按目标主机配置。
+    onImageLoad: (url) => this.imageLoadConfig(url),
+    onThumbnailLoad: (url) => this.thumbnailLoadConfig(url),
+
+    loadInfo: async (id) => {
+      const res = await this.request(`${this.baseUrl}/comic/${id}`);
+      const html = res.body;
+
+      const decode = (t) =>
+        (t || "")
+          .replace(/&amp;/g, "&")
+          .replace(/&quot;/g, '"')
+          .replace(/&#39;|&#x27;/g, "'")
+          .replace(/&lt;/g, "<")
+          .replace(/&gt;/g, ">")
+          .trim();
+      // 读取 <meta property|name="xxx" content="..."> (作为选择器失效时的后备)
+      const meta = (name) => {
+        const tag = html.match(
+          new RegExp(`<meta[^>]*(?:property|name)=["']${name}["'][^>]*>`, "i")
+        );
+        const c = tag && tag[0].match(/content=["']([^"']*)["']/i);
+        return c ? decode(c[1]) : "";
+      };
+      const pageTitle = decode(
+        (html.match(/<title[^>]*>([\s\S]*?)<\/title>/i) || [])[1]
+      );
+      // 从链接中取章节序号: chapter_slot=12 或 /comic/chapter/xxx/0_12.html
+      const slotOf = (href) => {
+        const m =
+          (href || "").match(/chapter_slot=(\d+)/) ||
+          (href || "").match(/\/\d+_(\d+)\.html/);
+        return m ? parseInt(m[1], 10) : null;
+      };
+
+      return this.withDoc(html, (document) => {
+        const title =
+          document.querySelector("h1.comics-detail__title")?.text.trim() ||
+          document.querySelector("h1")?.text.trim() ||
+          meta("og:title") ||
+          pageTitle.split(/[-_|–—]/)[0].trim();
+
+        const detailCoverNode = document.querySelector("div.l-content > div > div > amp-img") ||
+          document.querySelector("div.l-content amp-img, div.l-content img");
+        const cover =
+          this.coverFromNode(detailCoverNode) ||
+          this.normalizeImg(meta("og:image")) ||
+          this.coverFromId(id);
+
+        const author =
+          document.querySelector("h2.comics-detail__author")?.text.trim() ||
+          meta("og:novel:author") ||
+          "";
+
+        const tags = document
+          .querySelectorAll("div.tag-list > span")
+          .map((e) => e.text.trim())
+          .filter((e) => e !== "");
+
+        const description =
+          document.querySelector("p.comics-detail__desc")?.text.trim() ||
+          meta("og:description") ||
+          meta("description") ||
+          "";
+
+        // 章节
+        let list = document
+          .querySelectorAll("div.comics-chapters > a")
+          .map((a) => ({
+            href: a.attributes?.["href"] || "",
+            title: (a.querySelector("div > span")?.text || a.text || "").trim(),
+          }));
+        if (list.length === 0) {
+          // 后备:页面里所有看起来像章节的链接
+          list = document
+            .querySelectorAll("a")
+            .map((a) => ({
+              href: a.attributes?.["href"] || "",
+              title: (a.text || "").trim(),
+            }))
+            .filter((x) => /chapter_slot=|\/comic\/chapter\//.test(x.href));
+        }
+        const withSlot = list.map((x) => ({
+          href: x.href,
+          title: x.title,
+          slot: slotOf(x.href),
+        }));
+
+        const chapters = {};
+        if (withSlot.length > 0 && withSlot.every((x) => x.slot !== null)) {
+          // 链接里有序号:去重后按序号升序(旧 -> 新),不依赖页面显示顺序
+          const seen = new Set();
+          withSlot
+            .filter((x) => (seen.has(x.slot) ? false : (seen.add(x.slot), true)))
+            .sort((x, y) => x.slot - y.slot)
+            .forEach((x) => {
+              chapters[`ep_${x.slot}`] = x.title || `第 ${x.slot} 话`;
+            });
+        } else {
+          // 没有可解析的序号:按页面顺序编号
+          withSlot.forEach((x, i) => {
+            chapters[`ep_${i}`] = x.title || `第 ${i + 1} 话`;
+          });
+        }
+        const chapterCount = Object.keys(chapters).length;
+
+        // 解析结果完全为空时,明确报错并写日志,而不是显示一个空白详情页
+        if (!title && chapterCount === 0) {
+          const head = html.replace(/\s+/g, " ").slice(0, 400);
+          try {
+            log(
+              "error",
+              "baozimh_www",
+              `loadInfo 解析为空 id=${id} len=${html.length} title=${pageTitle} head=${head}`
+            );
+          } catch (e) {}
+          throw `无法解析漫画页面 (页面标题: ${pageTitle || "无"},长度 ${html.length})。可能需要重新验证,或站点页面结构已变化`;
+        }
+        if (chapterCount === 0) {
+          try {
+            log("warning", "baozimh_www", `loadInfo 未找到章节 id=${id}`);
+          } catch (e) {}
+        }
+
+        // 更新时间
+        let updateTime = document
+          .querySelector("div.supporting-text > div > span > em")
+          ?.text.trim()
+          .replace("(", "")
+          .replace(")", "");
+        let updateDate = undefined;
+        if (updateTime && /\d/.test(updateTime)) {
+          updateDate = updateTime
+            .replace(/年/g, "-")
+            .replace(/月/g, "-")
+            .replace(/日/g, "");
+        }
+
+        // 推荐
+        const recommend = [];
+        for (const c of document.querySelectorAll("div.recommend--item")) {
+          if (c.querySelectorAll("div.tag-comic").length > 0) {
+            const url = c.querySelector("a")?.attributes?.["href"] || "";
+            recommend.push(
+              new Comic({
+                id: url.split("/").pop(),
+                title: c.querySelector("span")?.text.trim() || "",
+                cover: this.coverOf(c, url.split("/").pop()),
+              })
+            );
+          }
+        }
+
+        return new ComicDetails({
+          title: title,
+          cover: cover,
+          description: description,
+          tags: {
+            作者: author ? [author] : [],
+            标签: tags,
+          },
+          chapters: chapterCount > 0 ? chapters : null,
+          recommend: recommend,
+          updateTime: updateDate,
+        });
+      });
+    },
+
+    loadEp: async (comicId, epId) => {
+      // epId 形如 ep_3,站点章节序号为 3
+      const slot = String(epId ?? "ep_0").replace(/^ep_/, "");
+      const cdn = this.loadSetting("cdn_domains") ?? "";
+      const quality = this.loadSetting("image_quality") ?? "/w640";
+
+      // 图片地址改写:替换 CDN 域名并附加画质路径
+      const rewrite = (imgUrl) => {
+        const match = imgUrl.match(
+          /^(https?:\/\/)?([^/\s:]+)(:\d+)?(\/[a-z]comic\/.*)/
+        );
+        if (!match) return imgUrl;
+        const domain = cdn === "" ? match[2] : cdn;
+        return `${match[1] || "https://"}${domain}${quality}${match[4]}`;
+      };
+
+      // 1) App 版页面 (一般无需验证,优先使用)
+      let images = [];
+      try {
+        const res = await this.request(
+          `https://appcn.baozimh.com/baozimhapp/comic/chapter/${comicId}/0_${slot}.html`
+        );
+        images = this.withDoc(res.body, (doc) => {
+          const list = [];
+          for (const node of doc.querySelectorAll(
+            ".comic-contain > .chapter-img"
+          )) {
+            const src =
+              node.querySelector(".comic-contain__item")?.attributes?.[
+                "data-src"
+              ];
+            if (src) list.push(rewrite(src));
+          }
+          return list;
+        });
+      } catch (e) {
+        // App 页失败时,回退到 Web 页;若是验证问题,Web 页同样会给出提示
+        console.log("app chapter page failed: " + e);
+      }
+
+      // 2) 回退:Web 版阅读页
+      if (images.length === 0) {
+        const res = await this.request(
+          `${this.baseUrl}/comic/chapter/${comicId}/0_${slot}.html`
+        );
+        images = this.withDoc(res.body, (doc) => {
+          const list = [];
+          for (const node of doc.querySelectorAll(
+            ".comic-contain amp-img, .comic-contain img"
+          )) {
+            const src =
+              node.attributes?.["src"] || node.attributes?.["data-src"];
+            if (src) list.push(rewrite(src));
+          }
+          return list;
+        });
+      }
+
+      if (images.length === 0) {
+        throw "未获取到图片,章节可能不存在或需要重新验证";
+      }
+      return { images: images };
+    },
+
+    // 点击标签 -> 搜索
+    onClickTag: (namespace, tag) => {
+      return { page: "search", attributes: { text: tag, options: [] } };
+    },
+
+    // 链接识别
+    link: {
+      domains: [
+        "baozimh.com",
+        "www.baozimh.com",
+        "cn.baozimh.com",
+        "tw.baozimh.com",
+      ],
+      linkToId: (url) => {
+        const m = url.match(/\/comic\/([^/?#]+)/);
+        return m ? m[1] : null;
+      },
+    },
+  };
+}
+
+/** Source-owned heuristic. Runs inside modifyImage without source-instance access. */
+function baoziBannerCleanup(image) {
+  if (!image || typeof image.getPixel !== "function" ||
+      typeof image.removeHorizontalBands !== "function") return image;
+  const width = image.width, height = image.height;
+  if (!Number.isInteger(width) || !Number.isInteger(height) ||
+      width < 400 || height < 300 || width * height > 12000000) return image;
+
+  // Bound JS/native calls even on very tall pages. No network or OCR is used.
+  let remaining = 140000;
+  const pixels = new Map();
+  const pixel = (x, y) => {
+    const key = y * width + x;
+    if (pixels.has(key)) return pixels.get(key);
+    if (--remaining < 0) throw new Error("Pixel sampling budget exceeded");
+    const value = image.getPixel(x, y);
+    if (!value || ![value.r, value.g, value.b, value.a].every(Number.isFinite)) {
+      throw new Error("Invalid pixel");
+    }
+    pixels.set(key, value);
+    return value;
+  };
+  const isWhite = (p) => p.a >= 240 && p.r > 232 && p.g > 232 && p.b > 232;
+  const xStep = Math.max(1, Math.ceil(width / 96));
+  const yStep = Math.max(1, Math.ceil(height / 900));
+  const rowIsWhite = (y) => {
+    let white = 0, count = 0;
+    for (let x = 0; x < width; x += xStep) {
+      if (isWhite(pixel(x, y))) white++;
+      count++;
+    }
+    return white / count >= 0.60;
+  };
+
+  const hasLogoAndText = (top, bottom) => {
+    const bandHeight = bottom - top;
+    const step = Math.max(1, Math.ceil(Math.max(width / 240, bandHeight / 60)));
+    let yellow = 0, dark = 0, darkRight = 0, count = 0;
+    let minX = width, maxX = -1, minY = bottom, maxY = -1;
+    for (let y = top; y < bottom; y += step) {
+      for (let x = Math.floor(width * .32); x < width * .68; x += step) {
+        const p = pixel(x, y);
+        if (p.a < 240) continue;
+        count++;
+        if (x > width * .36 && x < width * .56 &&
+            p.r > 160 && p.g > 100 && p.b < 150 && p.r > p.g * 1.03) {
+          yellow++;
+          minX = Math.min(minX, x); maxX = Math.max(maxX, x);
+          minY = Math.min(minY, y); maxY = Math.max(maxY, y);
+        }
+        if (p.r < 90 && p.g < 90 && p.b < 90) {
+          dark++;
+          if (x > width * .53) darkRight++;
+        }
+      }
+    }
+    if (!count || yellow < Math.max(12, Math.ceil(count * .0015))) return false;
+    const logoWidth = maxX - minX + 1, logoHeight = maxY - minY + 1;
+    const center = (minX + maxX) / 2, aspect = logoWidth / logoHeight;
+    return center > width * .37 && center < width * .53 &&
+      logoWidth > width * .025 && logoWidth < width * .12 &&
+      logoHeight > bandHeight * .15 && logoHeight < bandHeight * .9 &&
+      aspect > .55 && aspect < 1.8 &&
+      dark >= Math.max(12, Math.ceil(count * .012)) && darkRight >= 6;
+  };
+
+  try {
+    const candidates = [];
+    let start = null;
+    for (let y = 0; y < height; y += yStep) {
+      if (rowIsWhite(y)) {
+        if (start === null) start = y;
+      } else if (start !== null) {
+        candidates.push([start, y]);
+        start = null;
+      }
+    }
+    if (start !== null) candidates.push([start, height]);
+    const bands = [];
+    const minHeight = Math.max(18, Math.min(height * .025, width * .05));
+    const maxHeight = Math.min(height * .20, width * .6);
+    for (const candidate of candidates) {
+      let [top, bottom] = candidate;
+      // Refine coarse boundaries; never extend into a non-white row.
+      if (top > 0) {
+        for (let y = top - 1; y >= Math.max(0, top - yStep); y--) {
+          if (!rowIsWhite(y)) break;
+          top = y;
+        }
+      }
+      if (bottom < height) {
+        let refined = bottom;
+        for (let y = bottom - 1; y >= Math.max(top, bottom - yStep); y--) {
+          if (!rowIsWhite(y)) refined = y;
+          else break;
+        }
+        bottom = refined;
+      }
+      if (bottom - top < minHeight || bottom - top > maxHeight) continue;
+      if (!hasLogoAndText(top, bottom)) continue;
+      bands.push({top: top / height, bottom: bottom / height});
+      if (bands.length > 3) return image;
+    }
+    const removed = bands.reduce((sum, b) => sum + b.bottom - b.top, 0);
+    if (!bands.length || removed > .300000001) return image;
+    return image.removeHorizontalBands(bands) || image;
+  } catch (_) {
+    // Unknown input, API failures or excessive work always preserve the page.
+    return image;
+  }
+}

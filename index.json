@@ -1,0 +1,753 @@
+[
+  {
+    "name": "拷贝漫画",
+    "fileName": "copy_manga.js",
+    "key": "copy_manga",
+    "version": "1.6.7"
+  },
+  {
+    "name": "拷贝漫画(多账号)",
+    "fileName": "copy_manga_multi_accounts.js",
+    "key": "copy_manga_multi_accounts",
+    "version": "1.4.1"
+  },
+  {
+    "name": "Komiic",
+    "fileName": "komiic_dual.js",
+    "key": "Komiic",
+    "version": "1.0.8"
+  },
+  {
+    "name": "Picacg",
+    "fileName": "picacg.js",
+    "key": "picacg",
+    "version": "1.0.6"
+  },
+  {
+    "name": "nhentai",
+    "fileName": "nhentai.js",
+    "key": "nhentai",
+    "version": "1.1.0"
+  },
+  {
+    "name": "紳士漫畫",
+    "fileName": "wnacg.js",
+    "key": "wnacg",
+    "version": "1.0.6",
+    "description": "紳士漫畫漫畫源, 不能使用時請嘗試更換URL"
+  },
+  {
+    "name": "ehentai",
+    "fileName": "ehentai.js",
+    "key": "ehentai",
+    "version": "1.1.8"
+  },
+  {
+    "name": "禁漫天堂",
+    "fileName": "jm.js",
+    "key": "jm",
+    "version": "1.4.0",
+    "description": "禁漫天堂漫畫源, 不能使用時請嘗試切換分流"
+  },
+  {
+    "name": "MangaDex",
+    "fileName": "manga_dex.js",
+    "key": "manga_dex",
+    "version": "1.2.0",
+    "description": "Forum login and comments are supported."
+  },
+  {
+    "name": "爱看漫",
+    "fileName": "ikmmh.js",
+    "key": "ikmmh",
+    "version": "1.0.6"
+  },
+  {
+    "name": "少年ジャンプ＋",
+    "fileName": "shonen_jump_plus.js",
+    "key": "shonen_jump_plus",
+    "version": "1.2.0"
+  },
+  {
+    "name": "hitomi.la",
+    "fileName": "hitomi.js",
+    "key": "hitomi",
+    "version": "1.1.2"
+  },
+  {
+    "name": "comick",
+    "fileName": "comick.js",
+    "key": "comick",
+    "version": "1.2.0"
+  },
+  {
+    "name": "优酷漫画 (修复版)",
+    "fileName": "youku.js",
+    "key": "ykmh",
+    "version": "1.0.7"
+  },
+  {
+    "name": "再漫画",
+    "fileName": "zaimanhua.js",
+    "key": "zaimanhua",
+    "version": "1.0.2"
+  },
+  {
+    "name": "漫蛙吧",
+    "fileName": "manwaba_fixed_v113.js",
+    "key": "manwaba",
+    "version": "1.1.3"
+  },
+  {
+    "name": "Lanraragi",
+    "fileName": "lanraragi.js",
+    "key": "lanraragi",
+    "version": "1.1.0"
+  },
+  {
+    "name": "Komga",
+    "fileName": "komga.js",
+    "key": "komga",
+    "version": "1.0.0"
+  },
+  {
+    "name": "カドコミ",
+    "fileName": "comic_walker.js",
+    "key": "comic_walker",
+    "version": "1.0.1"
+  },
+  {
+    "name": "漫画1234",
+    "fileName": "mh1234.js",
+    "key": "mh1234",
+    "version": "1.0.0"
+  },
+  {
+    "name": "CCC追漫台",
+    "fileName": "ccc.js",
+    "key": "ccc",
+    "version": "1.0.1"
+  },
+  {
+    "name": "GoDa漫画",
+    "fileName": "goda.js",
+    "key": "goda",
+    "version": "1.2.1"
+  },
+  {
+    "name": "18漫画",
+    "fileName": "mh18.js",
+    "key": "mh18",
+    "version": "1.0.0"
+  },
+  {
+    "name": "漫小肆",
+    "fileName": "mxs.js",
+    "key": "mxs",
+    "version": "1.0.0"
+  },
+  {
+    "name": "漫画人",
+    "fileName": "manhuaren.js",
+    "key": "manhuaren",
+    "version": "1.0.1"
+  },
+  {
+    "name": "H-Comic",
+    "fileName": "hcomic.js",
+    "key": "hcomic",
+    "version": "1.0.0"
+  },
+  {
+    "name": "jcomic.net",
+    "fileName": "jcomic.js",
+    "key": "jcomic",
+    "version": "1.0.0"
+  },
+  {
+    "name": "热辣漫画",
+    "fileName": "hot_manga.js",
+    "key": "hot_manga",
+    "version": "1.0.0"
+  },
+  {
+    "name": "Kavita",
+    "fileName": "kavita.js",
+    "key": "kavita",
+    "version": "1.0.0"
+  },
+  {
+    "name": "嗨皮漫画",
+    "fileName": "happy.js",
+    "key": "happy",
+    "version": "1.0.0",
+    "description": "中国大陆及日韩IP无法访问，遇到403可以尝试切换其他地区网络"
+  },
+  {
+    "name": "MYCOMIC",
+    "fileName": "mycomic.js",
+    "key": "mycomic",
+    "version": "1.1.0",
+    "description": "mycomic.com漫画源, 遇到Cloudflare验证请在源设置中登录"
+  },
+  {
+    "name": "百合会",
+    "fileName": "baihehui.js",
+    "key": "baihehui",
+    "version": "1.0.0"
+  },
+  {
+    "name": "动漫屋",
+    "fileName": "dm5.js",
+    "key": "dm5",
+    "version": "7.0.3"
+  },
+  {
+    "name": "咚漫",
+    "fileName": "dongmanmanhua.js",
+    "key": "dongmanmanhua",
+    "version": "1.0.6"
+  },
+  {
+    "name": "动漫啦",
+    "fileName": "dongman_la_fixed_v101.js",
+    "key": "dongman_la",
+    "version": "1.0.5"
+  },
+  {
+    "name": "飞翔漫画",
+    "fileName": "ffppt.js",
+    "key": "ffppt",
+    "version": "1.0.8"
+  },
+  {
+    "name": "古风漫画",
+    "fileName": "gfmh.js",
+    "key": "GfmhApp",
+    "version": "1.3.0"
+  },
+  {
+    "name": "瓜子漫画",
+    "fileName": "guazi_manhua_v1.1.0.js",
+    "key": "guazimanhua",
+    "version": "1.0.4"
+  },
+  {
+    "name": "嬉皮漫畫",
+    "fileName": "hipmh.js",
+    "key": "hipmh",
+    "version": "1.0.1"
+  },
+  {
+    "name": "爱看漫",
+    "fileName": "ikmmh_v2.js",
+    "key": "ikmmh_v2",
+    "version": "3.0.0"
+  },
+  {
+    "name": "来漫画（分流）",
+    "fileName": "laimanhua_split_hosts_v1.2.1_configurable.js",
+    "key": "laimanhua_split",
+    "version": "1.2.1"
+  },
+  {
+    "name": "51漫画",
+    "fileName": "manga51.js",
+    "key": "manga51",
+    "version": "1.2.0"
+  },
+  {
+    "name": "香蕉漫画",
+    "fileName": "manhuauo_fixed_v2.js",
+    "key": "manhuauo_banana_v2",
+    "version": "1.0.3"
+  },
+  {
+    "name": "漫网",
+    "fileName": "manwang_fixed_v120.js",
+    "key": "manwang",
+    "version": "1.2.0"
+  },
+  {
+    "name": "4399漫画网",
+    "fileName": "mh4399.js",
+    "key": "mh4399",
+    "version": "1.0.3"
+  },
+  {
+    "name": "MOJOIN",
+    "fileName": "mojoin_fixed_v107.js",
+    "key": "mojoin_v2",
+    "version": "1.0.7"
+  },
+  {
+    "name": "NoyManga",
+    "fileName": "noymanga.js",
+    "key": "noymanga",
+    "version": "1.1.5"
+  },
+  {
+    "name": "Rawkuma",
+    "fileName": "rawkuma.js",
+    "key": "rawkuma",
+    "version": "1.1.0"
+  },
+  {
+    "name": "如漫画",
+    "fileName": "rumanhua_fixed_v16.js",
+    "key": "rumanhua_fixed_v15",
+    "version": "1.2.8"
+  },
+  {
+    "name": "SF漫画",
+    "fileName": "sfacg_manhua.js",
+    "key": "sfacg_manhua",
+    "version": "1.0.0"
+  },
+  {
+    "name": "腾讯动漫（正版）",
+    "fileName": "tencent_comic_official.js",
+    "key": "qq_comic_official_v1",
+    "version": "1.0.3"
+  },
+  {
+    "name": "图库漫画",
+    "fileName": "tuku_cc.js",
+    "key": "tuku_cc",
+    "version": "1.0.1"
+  },
+  {
+    "name": "W漫画",
+    "fileName": "wmanhua.js",
+    "key": "wmanhua",
+    "version": "1.0.3"
+  },
+  {
+    "name": "LINE WEBTOON",
+    "fileName": "webtoons_zh_hant.js",
+    "key": "webtoons_zh_hant",
+    "version": "1.0.0"
+  },
+  {
+    "name": "zero搬运网",
+    "fileName": "zerobyw33.js",
+    "key": "zerobyw33",
+    "version": "1.2.0"
+  },
+  {
+    "name": "Mangabz",
+    "fileName": "mangabz.js",
+    "key": "mangabz",
+    "version": "1.0.0"
+  },
+  {
+    "name": "CxC",
+    "fileName": "cxc.js",
+    "key": "cxc",
+    "version": "1.0.3"
+  },
+  {
+    "name": "サンデーうぇぶり",
+    "fileName": "sunday_webry.js",
+    "key": "sunday_webry",
+    "version": "1.0.0"
+  },
+  {
+    "name": "栗子漫画",
+    "fileName": "lizimh.js",
+    "key": "lizimh",
+    "version": "1.2.4"
+  },
+  {
+    "name": "xkcd 中文",
+    "fileName": "xkcd.js",
+    "key": "xkcd",
+    "version": "1.0.2",
+    "description": "由 Keiyoushi 的 Mihon 扩展转换为 Venera 漫画源"
+  },
+  {
+    "name": "《崩坏3》IP站",
+    "fileName": "bh3.js",
+    "key": "bh3",
+    "version": "1.0.2",
+    "description": "由 Keiyoushi 的 Mihon 扩展转换为 Venera 漫画源"
+  },
+  {
+    "name": "漫画社",
+    "fileName": "manhuashe.js",
+    "key": "manhuashe",
+    "version": "1.0.2",
+    "description": "由 Keiyoushi 的 Mihon 扩展转换为 Venera 漫画源"
+  },
+  {
+    "name": "杂志迷",
+    "fileName": "zazhimi.js",
+    "key": "zazhimi",
+    "version": "1.0.2",
+    "description": "由 Keiyoushi 的 Mihon 扩展转换为 Venera 漫画源"
+  },
+  {
+    "name": "泰拉记事社",
+    "fileName": "terrahistoricus.js",
+    "key": "terrahistoricus",
+    "version": "1.0.1",
+    "description": "由 Keiyoushi 的 Mihon 扩展转换为 Venera 漫画源"
+  },
+  {
+    "name": "漫画屋",
+    "fileName": "manhuawu.js",
+    "key": "manhuawu",
+    "version": "1.0.1",
+    "description": "由 Keiyoushi 的 Mihon 扩展转换为 Venera 漫画源"
+  },
+  {
+    "name": "六漫画",
+    "fileName": "sixmh.js",
+    "key": "sixmh",
+    "version": "1.0.1",
+    "description": "由 Keiyoushi 的 Mihon 扩展转换为 Venera 漫画源"
+  },
+  {
+    "name": "漫画160",
+    "fileName": "mh160.js",
+    "key": "mh160",
+    "version": "1.0.0",
+    "description": "由 Keiyoushi 的 Mihon 扩展转换为 Venera 漫画源"
+  },
+  {
+    "name": "GlobalComix 中文",
+    "fileName": "globalcomix.js",
+    "key": "globalcomix",
+    "version": "1.0.0",
+    "description": "由 Keiyoushi 的 Mihon 扩展转换为 Venera 漫画源"
+  },
+  {
+    "name": "NamiComi 中文",
+    "fileName": "namicomi.js",
+    "key": "namicomi",
+    "version": "1.0.0",
+    "description": "由 Keiyoushi 的 Mihon 扩展转换为 Venera 漫画源"
+  },
+  {
+    "name": "Toomics 玩漫（繁中）",
+    "fileName": "toomics.js",
+    "key": "toomics",
+    "version": "1.0.0",
+    "description": "由 Keiyoushi 的 Mihon 扩展转换为 Venera 漫画源"
+  },
+  {
+    "name": "快看漫画",
+    "fileName": "kuaikanmanhua.js",
+    "key": "kuaikanmanhua",
+    "version": "1.0.0",
+    "description": "由 Keiyoushi 的 Mihon 扩展转换为 Venera 漫画源"
+  },
+  {
+    "name": "熱辣漫畫",
+    "fileName": "relamanhua.js",
+    "key": "relamanhua",
+    "version": "1.0.0",
+    "description": "由 Keiyoushi 的 Mihon 扩展转换为 Venera 漫画源"
+  },
+  {
+    "name": "Comic Fury 中文",
+    "fileName": "comicfury.js",
+    "key": "comicfury",
+    "version": "1.0.0",
+    "description": "由 Keiyoushi 的 Mihon 扩展转换为 Venera 漫画源"
+  },
+  {
+    "name": "無限動漫",
+    "fileName": "comicabc.js",
+    "key": "comicabc",
+    "version": "1.0.0",
+    "description": "由 Keiyoushi 的 Mihon 扩展转换为 Venera 漫画源"
+  },
+  {
+    "name": "喜漫漫画",
+    "fileName": "favcomic.js",
+    "key": "favcomic",
+    "version": "1.0.0",
+    "description": "由 Keiyoushi 的 Mihon 扩展转换为 Venera 漫画源"
+  },
+  {
+    "name": "极速漫画",
+    "fileName": "jisumanhua.js",
+    "key": "jisumanhua",
+    "version": "1.0.0",
+    "description": "由 Keiyoushi 的 Mihon 扩展转换为 Venera 漫画源"
+  },
+  {
+    "name": "米卡插画",
+    "fileName": "mikagogo.js",
+    "key": "mikagogo",
+    "version": "1.0.0",
+    "description": "由 Keiyoushi 的 Mihon 扩展转换为 Venera 漫画源"
+  },
+  {
+    "name": "漫本",
+    "fileName": "manben.js",
+    "key": "manben",
+    "version": "1.0.1",
+    "description": "由 Keiyoushi 的 Mihon 扩展转换为 Venera 漫画源"
+  },
+  {
+    "name": "如漫画",
+    "key": "rumanhua",
+    "version": "1.1.0",
+    "description": "列表 / 章节 / AES 解密图片",
+    "fileName": "rumanhua.js"
+  },
+  {
+    "name": "漫客栈",
+    "key": "mkzhan",
+    "version": "1.0.1",
+    "description": "搜索 / 热门 / 章节 / 图片",
+    "fileName": "mkzhan.js"
+  },
+  {
+    "name": "动漫啦",
+    "key": "dongmanla",
+    "version": "1.0.0",
+    "description": "搜索 / 连载完结分类 / 章节 / 图片",
+    "fileName": "dongmanla.js"
+  },
+  {
+    "name": "漫画柜",
+    "key": "manhuagui",
+    "version": "1.2.2",
+    "description": "列表 / 搜索 / LZString 图片解码",
+    "fileName": "manhuagui.js"
+  },
+  {
+    "name": "X漫画",
+    "key": "xmanhua",
+    "version": "1.0.0",
+    "description": "Mangabz 同系 ashx",
+    "fileName": "xmanhua.js"
+  },
+  {
+    "name": "思思漫画",
+    "key": "sisimanhua",
+    "version": "1.0.0",
+    "description": "qTcms base64 图片",
+    "fileName": "sisimanhua.js"
+  },
+  {
+    "name": "漫画看",
+    "key": "mhkan",
+    "version": "1.0.0",
+    "description": "列表 / 搜索 / reader-image（wmh1234）",
+    "fileName": "mhkan.js"
+  },
+  {
+    "name": "热门漫画",
+    "key": "remenmanhua",
+    "version": "1.0.0",
+    "description": "列表 /comic/ + 章节 API 图片",
+    "fileName": "remenmanhua.js"
+  },
+  {
+    "name": "漫画皮",
+    "key": "manhuapi",
+    "version": "1.0.0",
+    "description": "列表 /manhua/ + chapter jhc-data 图片",
+    "fileName": "manhuapi.js"
+  },
+  {
+    "name": "爱飒漫画",
+    "key": "isamanhua",
+    "version": "1.0.0",
+    "description": "跳转看漫；getchapterlist / getchapterinfov2",
+    "fileName": "isamanhua.js"
+  },
+  {
+    "name": "看漫画",
+    "key": "kanman",
+    "version": "1.0.0",
+    "description": "列表 / 章节 API / chapter_img_list",
+    "fileName": "kanman.js"
+  },
+  {
+    "name": "漫蛙",
+    "key": "manwa",
+    "version": "1.1.6",
+    "description": "推荐 / 搜索 / 章节 / AES 图片",
+    "fileName": "manwa.js"
+  },
+  {
+    "name": "布卡漫画",
+    "key": "bukamh",
+    "version": "1.0.0",
+    "description": "最新热门 / AES params + 图片",
+    "fileName": "bukamh.js"
+  },
+  {
+    "name": "次元漫画",
+    "key": "cycomic",
+    "version": "1.0.0",
+    "description": "更新榜 / 搜索 API / 章节直链图",
+    "fileName": "cycomic.js"
+  },
+  {
+    "name": "漫蛙漫画",
+    "fileName": "manwayy.js",
+    "key": "manwayy",
+    "version": "1.1.0",
+    "description": "漫蛙漫画 (MANWA) 全功能源: 多域名切换/登录/收藏/评论/图片解密"
+  },
+  {
+    "name": "包子漫画 (yyya)",
+    "key": "baozi",
+    "version": "1.6.4",
+    "fileName": "baozi.js",
+    "description": "包子漫画漫画源"
+  },
+  {
+    "name": "嗶哩漫畫",
+    "fileName": "bilimanga.js",
+    "key": "bilimanga",
+    "version": "1.2.0",
+    "description": "由于venera缺少相关解析引擎，部分漫画报错(Exception Could not decompress image),暂时无法在.js文件层面解决"
+  },
+  {
+    "name": "鸟鸟韩漫",
+    "fileName": "nnhanman.js",
+    "key": "nnhanman",
+    "version": "1.1.1",
+    "description": "当前网址失效时请在设置页手动切换或输入最新网址"
+  },
+  {
+    "name": "MangaForFree",
+    "fileName": "mangaforfree.js",
+    "key": "mangaforfree",
+    "version": "0.7.4",
+    "description": ""
+  },
+  {
+    "name": "Manga18FX",
+    "fileName": "manga18fx.js",
+    "key": "manga18fx",
+    "version": "1.0.2",
+    "description": ""
+  },
+  {
+    "name": "4KHD",
+    "fileName": "4khd.js",
+    "key": "fourkhd",
+    "version": "2.0.7",
+    "description": ""
+  },
+  {
+    "name": "CosplayTele",
+    "fileName": "cosplaytele.js",
+    "key": "cosplaytele",
+    "version": "1.7.0",
+    "description": ""
+  },
+  {
+    "name": "JJcos",
+    "fileName": "jjcos.js",
+    "key": "jjcos",
+    "version": "1.3.0",
+    "description": ""
+  },
+  {
+    "name": "FoamGirl",
+    "fileName": "foamgirl.js",
+    "key": "foamgirl",
+    "version": "1.2.1",
+    "description": ""
+  },
+  {
+    "name": "Buon Dua",
+    "fileName": "buondua.js",
+    "key": "buondua",
+    "version": "1.2.0",
+    "description": "点击tag的网盘链接即可下载完整版套图，解压密码在详情页描述里"
+  },
+  {
+    "name": "V2PH",
+    "fileName": "v2ph.js",
+    "key": "v2ph",
+    "version": "1.2.0",
+    "description": "不登陆限制观看10张，默认账号每天限量观看10套，切换账号即可刷新额度/去原站充钱购买不限额资格(不推荐)"
+  },
+  {
+    "name": "Xiutaku",
+    "fileName": "xiutaku.js",
+    "key": "xiutaku",
+    "version": "1.1.0",
+    "description": "秀人网专区，分类页里的“人气模特”分区下首个tag“随机抽取”可从原站1800多个tag内随机抽取"
+  },
+  {
+    "name": "Kiutaku",
+    "fileName": "kiutaku.js",
+    "key": "kiutaku",
+    "version": "1.1.0",
+    "description": "本站点对网络IP纯净度要求较高，建议使用质量较好的节点或免费部署CFnew家宽节点"
+  },
+  {
+    "name": "Mitaku",
+    "fileName": "mitaku.js",
+    "key": "mitaku",
+    "version": "1.0.0",
+    "description": "点击tag的网盘链接即可下载完整版套图，解压密码在详情页描述里"
+  },
+  {
+    "name": "Ososedki",
+    "fileName": "ososedki.js",
+    "key": "ososedki",
+    "version": "1.1.1",
+    "description": "cf验证完成之后,要在wbeview界面点击返回首页验证才能生效，否则会循环验证"
+  },
+  {
+    "name": "绅士会所",
+    "fileName": "hentaiclub.js",
+    "key": "hentaiclub",
+    "version": "1.0.0",
+    "description": ""
+  },
+  {
+    "name": "Everia Club",
+    "fileName": "everiaclub.js",
+    "key": "everiaclub",
+    "version": "1.1.0",
+    "description": ""
+  },
+  {
+    "name": "美女图库",
+    "fileName": "pic12345.js",
+    "key": "pic12345",
+    "version": "1.0.1",
+    "description": "本站无需科学上网，裸连即可"
+  },
+  {
+    "name": "TWOIMG 美女",
+    "fileName": "twoimg.js",
+    "key": "twoimg_people",
+    "version": "1.1.1",
+    "description": ""
+  },
+  {
+    "name": "闺秀网",
+    "fileName": "guixiu.js",
+    "key": "guixiu_pic",
+    "version": "1.2.0",
+    "description": ""
+  },
+  {
+    "name": "CosBlay",
+    "fileName": "cosblay.js",
+    "key": "cosblay",
+    "version": "1.0.0",
+    "description": "本站无需科学上网，裸连即可"
+  },
+  {
+    "name": "潮流杂志",
+    "fileName": "trendszine.js",
+    "key": "trendszine",
+    "version": "1.0.0",
+    "description": ""
+  }
+]
